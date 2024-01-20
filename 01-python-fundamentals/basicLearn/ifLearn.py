@@ -1,8 +1,16 @@
-print("********欢迎进入登录界面******")
-username=input("Enter your username: ")
-passward=input("Enter your password: ")
-if username=="root" and passward=="12345":
-    print("登录成功!")
-else:
-    print("用户名或密码错误!")
-print("********程序结束******")
+# else可以省略，处理比较数值时int()把输入字符串型转成整型
+print("欢迎致电10086，我们提供以下服务：1.话费流量查询（11花费，12流量）；2.宽带办理；3.人工服务；")
+choice=input("请输入序号！")
+data=int(choice)
+if data==1:
+    print("话费流量查询专区")
+    a=int(input("请输入具体序号"))
+    if a==11:
+        print("话费余额为x元")
+    elif a==12:
+        print("流量余额为y元")
+elif data==2:
+    print("宽带办理专区")
+elif data==3:
+    print("人工服务专区")
+print("感谢您的致电，祝您生活愉快!")
