@@ -37,7 +37,6 @@ list.sort(reverse=True)
 
 
 
-=======
 
-'''
->>>>>>> origin/master
+
+
