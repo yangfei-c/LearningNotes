@@ -1,3 +1,5 @@
+
+
 # 动手学深度学习9.16~9.22
 
 ## softmax网络架构
@@ -182,4 +184,158 @@ $$
 梯度消失是指在训练过程中，网络深层的梯度非常小，导致权重更新缓慢或几乎停滞。这通常发生在深层网络或使用某些激活函数（如 Sigmoid 和 Tanh）时。
 
 梯度爆炸是指在训练过程中，网络中的梯度变得非常大，导致权重更新过大，从而使模型不稳定。
+
+# 第五章
+
+## 层和块
+
+层（Layer）深度学习网络的基本构建单元，通常执行一个简单的变换或操作，如线性变换、卷积、激活函数等。
+块（Block）由多个层或子模块组成，封装更复杂的逻辑或结构。通过块，可以使网络设计更加模块化和灵活。
+
+```
+net=nn.Sequential(nn.Linear(20,256),nn.ReLU(),nn.Linear(256,19))
+nn.Sequential将三个层连接起来作为一个块
+分别是线形层，激活层，线性层
+```
+
+### 自定义块
+
+通过自定义块来直观了解块是如何工作的
+
+```python
+class MLP(nn.Module):#继承nn.Module框架
+    def __init__(self):
+        super().__init__()
+        self.hidden=nn.Linear(20,256)
+        self.out=nn.Linear(256,10)
+
+    def forward(self,X):#前向传播计算方法
+        return self.out(F.relu(self.hidden(X)))
+```
+
+### 顺序块
+
+```python
+class MySequential(nn.Module):
+    def __init__(self,*args):
+        super().__init__()
+        for idx,module in enumerate(args):
+        #enumerate打包块和索引为元组for来遍历
+            self._modules[str(idx)]=module
+    def forward(self,X):#前向传播计算
+        for block in self._modules.values():
+            X=block(X)
+        return X
+```
+
+### 混合块
+
+混合块的使用使得神经网络的设计更具灵活性、可扩展性和可维护性。它们适用于多种深度学习应用，特别是在需要处理复杂任务和大规模数据时。
+
+```python
+class FixedHiddenMLP(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.rand_weight=torch.rand((20,20),requires_grad=False)
+        self.linear=nn.Linear(20,20)
+    def forward(self,X):
+        X=self.linear(X)
+        X=F.relu(torch.mm(X,self.rand_weight)+1)
+        X=self.linear(X)
+        while X.abs().sum()>1:
+            X /=2
+        return X.sum()
+
+class NestMLP(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.net=nn.Sequential(nn.Linear(20,64),nn.ReLU(),nn.Linear(64,32),nn.ReLU())
+        self.linear = nn.Linear(32, 16)
+    def forward(self,X):
+        return self.linear(self.net(X))
+```
+
+## 参数管理
+
+### 参数访问
+
+```python
+print(net[0].state_dict())#打印第一层参数
+```
+
+### 目标参数
+
+```python
+print(net[2].bias)
+print(net[2].bias.data)
+#直接访问到bias
+```
+
+### 一次性访问所有参数
+
+```python
+print(*[(name,param.shape) for name,param in net[0].named_parameters()])
+print(*[(name,param.shape) for name,param in net.named_parameters()])
+```
+
+### 从嵌套中获取参数
+
+进入block2
+
+​	block1-->block1-->block1-->block1
+
+​		block1中的结构
+
+​			linear-->ReLU-->linear-->ReLU
+
+进入linear(4,1)
+
+```python
+def block1():
+    return nn.Sequential(nn.Linear(4,8),nn.ReLU(),nn.Linear(8,4),nn.ReLU())
+def block2():
+    net=nn.Sequential()
+    for i in range(4):
+        net.add_module(f'block{i}',block1())
+    return net
+rgnet=nn.Sequential(block2(),nn.Linear(4,1))
+print(rgnet(X))
+print(rgnet)
+print(rgnet[0][1][0].bias.data)
+#rgnet[0][1][0]
+#访问第一个层即block1，rgnet[0][1]访问第一个层里面第二层即第二个block1(因为#block2包含4个block1)，rgnet[0][1][0]访问第一层block2中第二层block2中第一层即linear
+```
+
+### 参数初始化
+
+```python
+def init_xavier(m):
+    if type(m)==nn.Linear:
+        nn.init.xavier_uniform_(m.weight)
+def init_42(m):
+    if type(m)==nn.Linear:
+        nn.init.constant_(m.weight,42)
+net = nn.Sequential(nn.Linear(4, 8), nn.ReLU(), nn.Linear(8, 1))
+net[0].apply(init_xavier)
+net[2].apply(init_42)
+print(net[0].weight.data[0])
+print(net[2].weight.data)
+
+
+```
+
+Xavier初始化防止梯度消失和爆炸
+$$
+W的初始化服从均匀分布(-\sqrt{\frac{6}{n_{in}+n_{out}}} , \sqrt{\frac{6}{n_{in}+n_{out}}})
+$$
+
+### 参数绑定
+
+```python
+shared=nn.Linear(8,8)
+net=nn.Sequential(nn.Linear(4,8),nn.ReLU(),shared,nn.ReLU(),shared,nn.ReLU(),nn.Linear(8,1))
+X=torch.rand(size=(2,4))
+net(X)
+print(net[2].weight.data[0]==net[4].weight.data[0])
+```
 
