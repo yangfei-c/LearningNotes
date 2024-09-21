@@ -255,6 +255,20 @@ class NestMLP(nn.Module):
         return self.linear(self.net(X))
 ```
 
+### 自定义层
+
+自定义层是构建深度学习模型的基础组件。它通常实现一个特定的操作，比如卷积、激活函数或归一化。
+
+```python
+class centered_layer(nn.Module):
+    def __init__(self):
+        super().__init__()
+    def forward(self,X):
+        return X-X.mean()
+```
+
+
+
 ## 参数管理
 
 ### 参数访问
@@ -337,5 +351,19 @@ net=nn.Sequential(nn.Linear(4,8),nn.ReLU(),shared,nn.ReLU(),shared,nn.ReLU(),nn.
 X=torch.rand(size=(2,4))
 net(X)
 print(net[2].weight.data[0]==net[4].weight.data[0])
+```
+
+## 读写文件
+
+耗时较长的训练，最佳做法是定期保存中间结果，以防止服务器断电损失数天结果。
+
+```python
+import torch
+from torch import nn
+from torch.nn import functional as F
+x=torch.tensor([2,1,23,1])
+torch.save(x,'x_file')
+x2=torch.load('x_file',weights_only=True)
+print(x2)
 ```
 
