@@ -10,7 +10,7 @@ import torch
 import torchvision
 from PIL import Image
 
-img_path=("../imgs/cat.webp")
+img_path=("../imgs/plane.jfif")
 img_test=Image.open(img_path)
 if img_test is None:
     print("文件不存在，请检查路径!")
