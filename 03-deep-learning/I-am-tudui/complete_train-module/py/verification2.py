@@ -93,7 +93,7 @@ transform = torchvision.transforms.Compose([
 ])
 
 # 加载模型
-model = torch.load("../model/model_13", weights_only=False,map_location=torch.device('cpu'))
+model = torch.load("../model/model_36", weights_only=False,map_location=torch.device('cpu'))
 model.eval()
 
 # 遍历每张图片进行验证
