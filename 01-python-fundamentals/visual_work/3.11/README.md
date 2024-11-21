@@ -1,6 +1,6 @@
 # 包依赖
 numpy
-
+scipy
 opencv-python
 
 任意版本都行，直接 pip install 包名 安装即可
